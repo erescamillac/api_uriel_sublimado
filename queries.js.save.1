@@ -1,0 +1,91 @@
+// ESTABLECER LOS PARÁMETROS DE CONFIGURACIÓN de conexion a LA BASE DE DATOS
+
+const Pool = require('pg').Pool
+const pool = new Pool({
+    user: 'erick',
+    host: 'localhost',
+    database: 'bd_tienda_sublimado_v4',
+    password: 'erick123',
+    port: 5432,
+})
+
+//CREAR UNA RUTA PARA RECUPERAR TODOS LOS Productos DE LA BASE DE DATOS
+
+const getProductos = (request, response) => {
+	let consulta = 'SELECT * FROM producto';
+	console.log('getProductos()...');
+	console.log('Datetime [%s]', new Date().toJSON());
+	console.log('Ejecutando la CONSULTA (SQL) :: [%s]...', consulta);
+    	pool.query('SELECT * FROM paises ORDER BY id ASC', (error, results) => {
+        	if(error){
+            		throw error
+        	}
+        	response.status(200).json(results.rows)
+    	})
+}
+
+//CREAR UNA RUTA PARA RECUPERAR UN solo producto DE LA BASE DE DATOS
+
+const get = (request, response) => {
+
+    const id = parseInt(request.params.id)
+
+    pool.query('SELECT * FROM paises WHERE id = $1', [id], (error, results) => {
+        if(error){
+            throw error
+        }
+        response.status(200).json(results.rows)
+    })
+}
+
+//CREAR UNA RUTA PARA AGREGAR UN REGISTRO A LA BASE DE DATOS
+
+const createPais = (request, response) => {
+    const { nombre, capital } = request.body
+    
+    pool.query('INSERT INTO paises (nombre, capital) VALUES ($1,$2)', [nombre, capital], (error, results) => {
+        if (error){
+            throw error
+        }
+        response.status(201).send('El pais ha sido agregado a la base de datos')
+    })
+}
+
+//CREAR UNA RUTA PARA ACTUALIZAR UN REGISTRO EN LA BASE DE DATOS
+
+const updatePais = (request, response) => {
+    const id = parseInt(request.params.id)
+    const {nombre, capital} = request.body
+    
+    pool.query(
+        'UPDATE paises SET nombre = $1, capital = $2 WHERE id = $3',
+        [nombre, capital, id],
+        (error, results) => {
+            if (error) {
+                throw error
+            }
+            response.status(200).send('La tabla Pais ha sido actualizada en la base de datos')
+        }
+    )
+}
+
+//CREAR UNA RUTA PARA ELIMINAR UN REGISTRO EN LA BASE DE DATOS
+
+const deletePais = (request, response) => {
+    const id = parseInt(request.params.id)
+    
+    pool.query('DELETE FROM paises WHERE id = $1', [id], (error, results) => {
+        if(error){
+            throw error
+        }
+        response.status(200).send(`Pais eliminado con ID: ${id}`)
+    })
+}
+
+module.exports = {
+    getPaises,
+    getPaisById,
+    createPais,
+    updatePais,
+    deletePais
+}
